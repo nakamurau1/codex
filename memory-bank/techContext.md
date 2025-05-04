@@ -12,7 +12,10 @@
 **Key Frameworks/Libraries (Inferred):**
 *   Node.js (Runtime for CLI)
 *   Potentially libraries for argument parsing, API requests, terminal interaction within `codex-cli`.
-*   Rust standard library and potentially crates for OS interaction, process management, sandboxing within `codex-rs`.
+*   Rust standard library and crates for OS interaction, process management, sandboxing within `codex-rs`.
+*   `mcp-types` (Internal Rust crate for MCP protocol types).
+*   `mcp-server` (Internal Rust crate for basic MCP server).
+*   Serde (Rust library for serialization/deserialization, used heavily in `mcp-types` and `mcp-server`).
 
 **Development Environment:**
 *   **OS:** macOS 12+, Ubuntu 20.04+/Debian 10+, Windows 11 via WSL2.
@@ -28,3 +31,4 @@
 *   Prettier (Code formatting)
 *   Husky (Git hooks)
 *   git-cliff (Changelog generation)
+*   Python (Used for `generate_mcp_types.py` script).

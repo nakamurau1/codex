@@ -11,9 +11,11 @@
 *   Approval modes (`Suggest`, `Auto Edit`, `Full Auto`).
 *   Loading instructions from `codex.md`.
 *   Non-interactive mode (`--quiet`).
+*   Internal MCP infrastructure (Rust): `mcp-types` crate for protocol types and `mcp-server` for a basic test server exist.
+*   Codex has been used successfully to contribute to its own development (e.g., generating `mcp-types`).
 
 **What Needs Building / Next Steps:**
-*   **Model Context Protocol (MCP) Integration:** This is the current primary focus. Requires designing the configuration, implementing the client logic, and integrating tool calls into the agent's workflow.
+*   **Model Context Protocol (MCP) Client Integration (TypeScript):** This is the current primary focus. Requires designing configuration, implementing client logic in `codex-cli` using the TS SDK, and integrating tool calls into the agent workflow.
 *   **Multimodal Input Handling:** README mentions support for screenshots/diagrams, but implementation details are likely pending.
 *   **Refinement and Stability:** As an experimental project, ongoing work is needed for bug fixing, feature completion, and stabilization.
 *   **Enhanced Sandboxing (Linux):** While Docker is recommended, built-in sandboxing might be explored.
