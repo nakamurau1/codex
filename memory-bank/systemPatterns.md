@@ -1,18 +1,20 @@
-# System Patterns
+# システムパターン
 
-**Core Architecture:**
-*   **`codex-rs`:** Contains the core Rust logic. Includes:
-    *   Agent reasoning, execution sandboxing, OS/filesystem interactions.
-    *   **`mcp-types` crate:** Defines MCP protocol data structures, generated from the official JSON schema via a Python script.
-    *   **`mcp-server` crate:** Provides a basic MCP server implementation (e.g., for testing).
-*   **`codex-cli`:** Provides the command-line interface (Node.js/TypeScript). Manages user interaction, prompts, orchestrates calls to `codex-rs` components, and will house the **MCP client implementation**.
-*   **Language Models:** Interacts with OpenAI API or compatible alternatives.
+**コアアーキテクチャ:**
 
-**Key Technical Decisions:**
-*   **Hybrid Language Stack:** Rust for core logic/performance, Node.js/TypeScript for CLI and client-side MCP integration.
-*   **MCP Type Generation:** Uses a Python script (`generate_mcp_types.py`) to generate Rust types (`mcp-types`) from the official MCP JSON schema, ensuring protocol adherence.
-*   **Sandboxing for Security:** Employs OS-specific sandboxing mechanisms (Apple Seatbelt on macOS, recommends Docker on Linux) to safely execute code generated or requested by the AI, restricting network access and file system writes by default.
-*   **PNPM Workspaces:** Manages dependencies and links between the different parts of the project (e.g., `codex-cli`, potentially shared utilities).
-*   **Nix Flakes:** Used for ensuring a reproducible development environment.
-*   **Configuration:** Primarily via environment variables (`OPENAI_API_KEY`, etc.) and `.env` files, with additional configuration likely possible via CLI flags and potentially configuration files (`codex.md` for instructions, maybe others).
-*   **Extensibility (Planned):** Adding support for Model Context Protocol (MCP) to allow interaction with a wide range of external tools and data sources.
+- **`codex-rs`:** 主要な Rust ロジックを含む。内容は以下の通り:
+  - エージェントの推論、実行サンドボックス化、OS/ファイルシステムとの対話。
+  - **`mcp-types` クレート:** MCP プロトコルデータ構造を定義。公式 JSON スキーマから Python スクリプト経由で生成。
+  - **`mcp-server` クレート:** 基本的な MCP サーバー実装を提供（テスト用など）。
+- **`codex-cli`:** コマンドラインインターフェースを提供 (Node.js/TypeScript)。ユーザーインタラクション、プロンプトを管理し、`codex-rs` コンポーネントへの呼び出しを調整し、**MCP クライアント実装** を格納する。
+- **言語モデル:** OpenAI API または互換性のある代替（Gemini, Ollama など）と対話する。
+
+**主要な技術的決定:**
+
+- **ハイブリッド言語スタック:** コアロジック/パフォーマンスには Rust、CLI およびクライアントサイドの MCP 統合には Node.js/TypeScript を使用。
+- **MCP 型生成:** Python スクリプト (`generate_mcp_types.py`) を使用して公式 MCP JSON スキーマから Rust 型 (`mcp-types`) を生成し、プロトコル準拠を保証。
+- **セキュリティのためのサンドボックス化:** AI によって生成または要求されたコードを安全に実行するために、OS 固有のサンドボックス化メカニズム（macOS では Apple Seatbelt、Linux では Docker 推奨）を採用。デフォルトでネットワークアクセスとファイルシステム書き込みを制限。
+- **PNPM ワークスペース:** プロジェクトの異なる部分（例: `codex-cli`、共有ユーティリティの可能性）間の依存関係とリンクを管理。
+- **Nix Flakes:** 再現可能な開発環境を保証するために使用。
+- **設定:** 主に環境変数 (`OPENAI_API_KEY` など) および `.env` ファイル経由。CLI フラグや設定ファイル（指示用の `codex.md`、その他可能性あり）による追加設定も可能。
+- **拡張性（計画中）:** Model Context Protocol (MCP) のサポートを追加し、広範な外部ツールやデータソースとの対話を可能にする。

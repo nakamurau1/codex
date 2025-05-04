@@ -1,26 +1,32 @@
-# Progress
+# 進捗状況
 
-**Current Status:** Experimental, under active development.
+**現在のステータス:** 実験的、活発な開発中。
 
-**What Works (Based on README):**
-*   Installation via `npm install -g @openai/codex`.
-*   Basic CLI execution (interactive mode `codex`, prompt mode `codex "..."`).
-*   API key configuration (env var, `.env` file).
-*   Support for multiple AI providers via `--provider` flag or config.
-*   Security sandboxing (macOS Seatbelt, Docker recommendation for Linux).
-*   Approval modes (`Suggest`, `Auto Edit`, `Full Auto`).
-*   Loading instructions from `codex.md`.
-*   Non-interactive mode (`--quiet`).
-*   Internal MCP infrastructure (Rust): `mcp-types` crate for protocol types and `mcp-server` for a basic test server exist.
-*   Codex has been used successfully to contribute to its own development (e.g., generating `mcp-types`).
+**動作するもの (README に基づく):**
 
-**What Needs Building / Next Steps:**
-*   **Model Context Protocol (MCP) Client Integration (TypeScript):** This is the current primary focus. Requires designing configuration, implementing client logic in `codex-cli` using the TS SDK, and integrating tool calls into the agent workflow.
-*   **Multimodal Input Handling:** README mentions support for screenshots/diagrams, but implementation details are likely pending.
-*   **Refinement and Stability:** As an experimental project, ongoing work is needed for bug fixing, feature completion, and stabilization.
-*   **Enhanced Sandboxing (Linux):** While Docker is recommended, built-in sandboxing might be explored.
-*   **Network Whitelisting:** README mentions plans to allow specific network-enabled commands in the future.
+- `npm install -g @openai/codex` によるインストール。
+- 基本的な CLI 実行（対話モード `codex`、プロンプトモード `codex "..."`）。
+- API キー設定（環境変数、`.env` ファイル）。
+- `--provider` フラグまたは設定による複数 AI プロバイダーのサポート。
+- セキュリティサンドボックス化（macOS Seatbelt、Linux は Docker 推奨）。
+- 承認モード（`Suggest`, `Auto Edit`, `Full Auto`）。
+- `codex.md` からの指示読み込み。
+- 非対話モード (`--quiet`)。
+- 内部 MCP インフラストラクチャ (Rust): プロトコル型のための `mcp-types` クレートと基本的なテストサーバーのための `mcp-server` が存在する。
+- Codex は自身の開発に貢献するために成功裏に使用されている（例: `mcp-types` の生成）。
 
-**Known Issues/Challenges:**
-*   Being experimental, bugs and incomplete features are expected.
-*   Sandboxing effectiveness and cross-platform consistency might require ongoing attention.
+**構築が必要なもの / 次のステップ:**
+
+- **Model Context Protocol (MCP) クライアント統合 (TypeScript):**
+  - **現在のフェーズ:** 設計 (設計書: `docs/mcp_client_integration_design.md`)
+  - **タスク:** 設定、クライアント実装 (TS SDK)、エージェント統合、エラーハンドリング、セキュリティ、テストをカバーする設計を最終化する。
+  - **次のフェーズ:** `codex-cli` 内での実装。
+- **マルチモーダル入力処理:** README でサポートが言及されているが、設計/実装は未定の可能性が高い。
+- **洗練と安定化:** 実験的なプロジェクトとして、バグ修正、機能完成、安定化のための継続的な作業が必要。
+- **サンドボックス化の強化 (Linux):** Docker が推奨されているが、組み込みのサンドボックス化が検討される可能性あり。
+- **ネットワークホワイトリスト化:** README で将来的に特定のネットワーク対応コマンドを許可する計画が言及されている。
+
+**既知の問題/課題:**
+
+- 実験的であるため、バグや未完成の機能が予想される。
+- サンドボックス化の有効性やクロスプラットフォームの一貫性には継続的な注意が必要な場合がある。

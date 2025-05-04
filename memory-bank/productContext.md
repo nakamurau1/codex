@@ -1,17 +1,18 @@
-# Product Context: OpenAI Codex CLI
+# プロダクトコンテキスト: OpenAI Codex CLI
 
-**Target Audience:** Developers who primarily work within the terminal environment.
+**対象読者:** 主にターミナル環境で作業する開発者。
 
-**Problem Solved:** Bridges the gap between conversational AI capabilities (like ChatGPT) and practical development workflows. Allows developers to leverage AI for reasoning *and* direct action (code execution, file manipulation) within their existing terminal setup, without needing to switch contexts frequently.
+**解決される問題:** 対話型AIの能力（ChatGPTなど）と実践的な開発ワークフローとの間のギャップを埋める。開発者が既存のターミナル設定内で、頻繁にコンテキストを切り替えることなく、AIを推論 _および_ 直接的なアクション（コード実行、ファイル操作）に活用できるようにする。
 
-**Core Value Proposition:** Enables "chat-driven development" by providing an AI agent that understands the repository context and can execute tasks under version control.
+**主要な価値提案:** リポジトリのコンテキストを理解し、バージョン管理下でタスクを実行できるAIエージェントを提供することで、「チャット駆動開発」を可能にする。
 
-**Key Features (as described in README):**
-*   Zero setup (requires only an API key).
-*   Secure execution via sandboxing (network-disabled by default, directory-restricted).
-*   Multiple approval modes (`Suggest`, `Auto Edit`, `Full Auto`) for varying levels of autonomy.
-*   Multimodal input capabilities (accepts screenshots/diagrams - though implementation details TBD).
-*   Support for various AI providers (OpenAI, Gemini, Ollama, etc.).
-*   Project-specific context via `codex.md` files.
-*   Non-interactive mode for CI/CD integration.
-*   Open-source development model.
+**主な機能 (READMEより):**
+
+- ゼロセットアップ（APIキーのみ必要）。
+- サンドボックス化による安全な実行（デフォルトでネットワーク無効、ディレクトリ制限）。
+- 複数の承認モード（`Suggest`, `Auto Edit`, `Full Auto`）による様々なレベルの自律性。
+- マルチモーダル入力機能（スクリーンショット/図を受け入れる - 実装詳細は未定）。
+- 様々なAIプロバイダーのサポート（OpenAI, Gemini, Ollama など）。
+- `codex.md` ファイルによるプロジェクト固有のコンテキスト。
+- CI/CD統合のための非対話モード。
+- オープンソース開発モデル。

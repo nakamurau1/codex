@@ -1,3 +1,3 @@
-# Project Brief: OpenAI Codex CLI
+# プロジェクト概要: OpenAI Codex CLI
 
-**Core Goal:** To create a lightweight, terminal-based coding agent that combines large language model reasoning with the ability to execute code, manipulate files, and iterate on software development tasks directly within the user's workspace.
+**主要目標:** 大規模言語モデルの推論能力と、コードの実行、ファイルの操作、ソフトウェア開発タスクの反復をユーザーのワークスペース内で直接行う能力を組み合わせた、軽量なターミナルベースのコーディングエージェントを作成すること。

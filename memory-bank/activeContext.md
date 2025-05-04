@@ -1,12 +1,19 @@
-# Active Context
+# アクティブコンテキスト
 
-**Current Goal:** Implement support for Model Context Protocol (MCP) server interactions within the Codex CLI.
+**現在の目標:** Codex CLI 内での Model Context Protocol (MCP) サーバーとの対話サポートを実装する。
 
-**Objective:** Allow Codex CLI to leverage external tools and data sources exposed via MCP servers, extending its capabilities beyond basic file operations and code execution.
+**目的:** Codex CLI が MCP サーバー経由で公開される外部ツールやデータソースを活用できるようにし、基本的なファイル操作やコード実行を超える能力に拡張する。
 
-**Next Steps:**
-1.  Identify the appropriate module/files within the `codex-cli` (TypeScript) codebase to integrate MCP client logic.
-2.  Determine the mechanism for configuring and discovering MCP servers (e.g., configuration file, command-line arguments). Consider how this might interact with potential future use of the internal `mcp-server` Rust crate.
-3.  Implement the core MCP client functionality in TypeScript, likely using the official `@modelcontextprotocol/ts-client` SDK. Ensure correct handling of protocol messages as defined (potentially referencing Rust's `mcp-types` for structure).
-4.  Integrate MCP tool calls into the agent's reasoning and execution loop within the `codex-cli`.
-5.  (Optional) Explore using the existing `mcp-server` Rust crate as a local test harness during client development.
+**最近のアクティビティ:**
+
+- 初期の MCP クライアント統合設計書 (`docs/mcp_client_integration_design.md`) を作成し、「目的」セクションを日本語で記述した。
+
+**次のステップ:**
+
+1.  **設計フェーズ:** 設計書 (`docs/mcp_client_integration_design.md`) に、サーバー設定、クライアント実装詳細、エージェント統合、エラーハンドリング、セキュリティ、テストなどの項目を記述し続ける。
+2.  **実装フェーズ:** 設計に基づき:
+    - `codex-cli` (TypeScript) コードベース内の適切なモジュール/ファイルを特定する。
+    - TypeScript で主要な MCP クライアント機能を実装する (`@modelcontextprotocol/ts-client` を使用)。
+    - MCP ツール呼び出しをエージェントの推論および実行ループに統合する。
+    - 新機能のテストを追加する。
+3.  (任意) 既存の `mcp-server` Rust クレートをクライアント開発中のローカルテストハーネスとして使用することを検討する。
