@@ -264,3 +264,18 @@ sequenceDiagram
 ```
 
 この連携により、`AgentLoop` は MCP ツールを既存の `shell` ツールと同様の枠組みで扱えるようになります。
+
+**具体的な連携箇所 (`AgentLoop` 内):**
+
+- **`constructor` (コンストラクタ、約 L257):**
+  - `McpClientManager` のインスタンスを作成（または取得）し、非同期で `mcpClientManager.initialize()` を呼び出して初期化を開始します。`run` メソッド開始前に初期化が完了するように考慮する必要があります。
+- **`run` メソッド (約 L441):**
+  - `responsesCreateViaChatCompletions` を呼び出す直前で、`mcpClientManager.getAvailableTools()` を呼び出して MCP ツールの `FunctionTool` リストを取得し、`shellTool` と結合して `tools` パラメータに設定します。
+- **`handleFunctionCall` メソッド (約 L337):**
+  - `item.name` をチェックし、`shell` でなければ MCP ツールとして扱います。
+  - MCP ツール名 (`serverName:toolName` 形式を想定) をパースします。
+  - 引数を `parseToolCallArguments` でパースします。
+  - `mcpClientManager.callTool(serverName, toolName, parsedArgs)` を `await` で呼び出します。
+  - 結果を `function_call_output` 形式の `ResponseInputItem` に整形して返します。
+- **`terminate` メソッド (約 L217) / `cancel` メソッド (約 L165):**
+  - ループの終了またはキャンセル処理の中で、`mcpClientManager.terminate()` (または適切なクリーンアップメソッド) を呼び出し、リソースを解放します。

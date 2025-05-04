@@ -6,11 +6,12 @@
 
 **最近のアクティビティ:**
 
-- 初期の MCP クライアント統合設計書 (`docs/mcp_client_integration_design.md`) を作成し、「目的」セクションを日本語で記述した。
+- 初期の MCP クライアント統合設計書 (`docs/mcp_client_integration_design.md`) を作成し、「目的」「サーバー設定方法」「クライアント実装詳細（クラス構造、AgentLoop連携）」セクションを日本語で記述した。
+- `AgentLoop` 内で `McpClientManager` を呼び出す具体的な箇所（コンストラクタ、run、handleFunctionCall、terminate/cancel）を特定した。
 
 **次のステップ:**
 
-1.  **設計フェーズ:** 設計書 (`docs/mcp_client_integration_design.md`) に、サーバー設定、クライアント実装詳細、エージェント統合、エラーハンドリング、セキュリティ、テストなどの項目を記述し続ける。
+1.  **設計フェーズ:** 設計書 (`docs/mcp_client_integration_design.md`) に、エラーハンドリング、セキュリティ、テスト計画などの残りの項目を記述し続ける。
 2.  **実装フェーズ:** 設計に基づき:
     - `codex-cli` (TypeScript) コードベース内の適切なモジュール/ファイルを特定する。
     - TypeScript で主要な MCP クライアント機能を実装する (`@modelcontextprotocol/ts-client` を使用)。
