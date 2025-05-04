@@ -222,3 +222,45 @@ graph LR
 ```
 
 このクラス構造で、設定の読み込みから個々のサーバー接続管理、エージェントへのインターフェース提供までを整理できると考えられます。
+
+### 3.2. AgentLoop との連携
+
+`codex-cli` の中核的なエージェントロジックは `AgentLoop` クラス (`codex-cli/src/utils/agent/agent-loop.ts`) が担っています。MCP クライアント機能は、この `AgentLoop` と連携して動作する必要があります。
+
+**連携のポイント:**
+
+1.  **初期化:** `AgentLoop` のインスタンス化時、または `run` メソッドの開始時に、`McpClientManager` をインスタンス化し、設定に基づいて MCP サーバーへの接続を確立します。
+2.  **ツールリストの提供:** `AgentLoop` は `run` メソッドで LLM に対話を開始する前に、`McpClientManager` から現在利用可能なすべての MCP ツールのリスト (`FunctionTool[]`) を取得します。このリストは、既存の `shellTool` と結合され、LLM へのリクエスト (`responsesCreateViaChatCompletions`) の `tools` パラメータとして渡されます。これにより、LLM は MCP ツールを認識し、呼び出すことが可能になります。
+3.  **ツール呼び出しの処理:** `AgentLoop` 内の `handleFunctionCall` メソッドは、LLM からのツール呼び出しを処理します。
+    - 受け取った `ResponseFunctionToolCall` の `name` を確認します。
+    - 名前が `shell` であれば、既存の `handleExecCommand` を呼び出します。
+    - 名前が MCP ツール（例: `github:get_issue`, `web_search:search` など、サーバー名とツール名を組み合わせた形式が考えられる）であれば、`McpClientManager` の `callTool(serverName, toolName, args)` のようなメソッドを呼び出して実行を委譲します。引数 (`args`) は `parseToolCallArguments` を利用してパースします。
+4.  **結果の返却:** `McpClientManager` から返されたツールの実行結果（成功時の出力またはエラー情報）を、`AgentLoop` は `function_call_output` 形式の `ResponseInputItem` に整形し、次の LLM へのリクエストに含めます。
+5.  **エラーハンドリング:** `McpClientManager` や `McpClientInstance` で発生したエラー（サーバー接続失敗、ツール実行タイムアウト、プロトコルエラーなど）は `AgentLoop` に適切に伝播され、必要に応じてユーザーに通知されたり、LLM へのエラーメッセージとして返されたりする必要があります。
+6.  **クリーンアップ:** `AgentLoop` が終了する際 (`terminate` メソッドなど) に、`McpClientManager` のクリーンアップメソッドを呼び出し、すべての MCP サーバープロセスを確実に終了させ、接続を閉じます。
+
+**ツール呼び出し時のシーケンス図:**
+
+```mermaid
+sequenceDiagram
+    participant LLM
+    participant AgentLoop
+    participant McpClientManager
+    participant McpClientInstance
+    participant McpSDKClient as "@mcp/ts-client Client"
+    participant ServerProcess
+
+    LLM->>AgentLoop: function_call (toolName: "server:tool", args: {...})
+    AgentLoop->>McpClientManager: callTool("server", "tool", args)
+    McpClientManager->>McpClientInstance: getInstance("server").callTool("tool", args)
+    McpClientInstance->>McpSDKClient: client.callTool("tool", args)
+    McpSDKClient->>ServerProcess: Sends callTool request (via transport)
+    ServerProcess->>ServerProcess: Executes tool logic
+    ServerProcess->>McpSDKClient: Sends tool result (via transport)
+    McpSDKClient->>McpClientInstance: Returns result
+    McpClientInstance->>McpClientManager: Returns result
+    McpClientManager->>AgentLoop: Returns result
+    AgentLoop->>LLM: function_call_output (result)
+```
+
+この連携により、`AgentLoop` は MCP ツールを既存の `shell` ツールと同様の枠組みで扱えるようになります。
