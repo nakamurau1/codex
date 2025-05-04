@@ -162,3 +162,63 @@ Codex CLI が接続する MCP サーバーは、設定ファイルによって�
 - `my-custom-tool` サーバー (プロジェクトから)
 
 が利用可能になります。
+
+## 3. クライアントの実装詳細
+
+MCP クライアント機能は `codex-cli` パッケージ内の TypeScript で実装します。主な責務は、設定に基づいた MCP サーバープロセスの管理、サーバーとの MCP プロトコル通信、そしてエージェントコアへのツール/リソース提供インターフェースです。
+
+### 3.1. クラス構造
+
+以下の主要なクラスを導入することを提案します。
+
+- **`McpConfigLoader` (設定ローダー)**
+
+  - **責務:**
+    - グローバル (`~/.codex/mcp_config.json`) およびプロジェクト (`<プロジェクトルート>/.codex/mcp_config.json`) 設定ファイルの読み込み。
+    - 設定内容のバリデーション (Zod スキーマを使用)。
+    - 設定のマージ（プロジェクト設定がグローバル設定を上書き）。
+    - 最終的な有効なサーバー設定リスト (`Record<string, McpServerConfig>`) を提供。
+  - **配置:** `codex-cli/src/mcp/config.ts` (または同様の場所)
+
+- **`McpClientManager` (クライアントマネージャー)**
+
+  - **責務:**
+    - `McpConfigLoader` を使用して設定を読み込む。
+    - 有効な各サーバー設定に対して `McpClientInstance` を作成・管理する (内部で `Map<string, McpClientInstance>` として保持)。
+    - Codex CLI のライフサイクルに合わせて、すべての `McpClientInstance` を初期化・破棄する。
+    - エージェントコアからの要求に応じて、利用可能なすべての MCP ツールやリソースの一覧を提供する (各 `McpClientInstance` から集約)。
+    - エージェントコアからのツール呼び出し (`callTool`) やリソース読み取り (`readResource`) リクエストを受け取り、適切な `McpClientInstance` に委譲する。
+    - MCP サーバー全体のステータス管理やイベント通知（UI への通知など、将来的な拡張）。
+  - **配置:** `codex-cli/src/mcp/manager.ts`
+  - **備考:** Codex CLI セッションごとにシングルトン、または単一インスタンスとして生成・利用される想定。
+
+- **`McpClientInstance` (クライアントインスタンス)**
+  - **責務:**
+    - 単一の MCP サーバー設定を受け取り、対応するサーバーへの接続を管理する。
+    - サーバープロセスを起動・監視・終了する (STDIO トランスポートの場合、Node.js の `child_process` を使用)。
+    - `@modelcontextprotocol/ts-client` SDK の `Client` およびトランスポート (`StdioClientTransport` / `SSEClientTransport` - 初期は STDIO のみ) インスタンスを作成・管理する。
+    - サーバーとの接続 (`initialize`)、切断 (`close`) を行う。
+    - サーバープロセスの標準入出力と `StdioClientTransport` を接続する。
+    - サーバーからのイベント (エラー、クローズ、ログなど) をハンドルする。
+    - `McpClientManager` からの要求に応じて、ツールリスト (`listTools`)、リソースリスト (`listResources`)、リソーステンプレートリスト (`listResourceTemplates`) をサーバーから取得する。
+    - ツール呼び出し (`callTool`) やリソース読み取り (`readResource`) を実行し、結果を返す。
+  - **配置:** `codex-cli/src/mcp/instance.ts`
+
+**クラス間の関係:**
+
+```mermaid
+graph LR
+    AgentCore -- Requests --> McpClientManager
+    McpClientManager -- Uses --> McpConfigLoader
+    McpClientManager -- Manages --> McpClientInstanceMap{Map<serverName, McpClientInstance>}
+    McpClientInstanceMap -- Contains --> McpClientInstance1(Instance: Server1)
+    McpClientInstanceMap -- Contains --> McpClientInstance2(Instance: Server2)
+    McpClientInstance1 -- Uses --> McpSDKClient["@mcp/ts-client Client"]
+    McpClientInstance2 -- Uses --> McpSDKClient
+    McpClientInstance1 -- Uses --> McpSDKTransport["@mcp/ts-client Transport"]
+    McpClientInstance2 -- Uses --> McpSDKTransport
+    McpClientInstance1 -- Manages --> ServerProcess1["Server Process 1"]
+    McpClientInstance2 -- Manages --> ServerProcess2["Server Process 2"]
+```
+
+このクラス構造で、設定の読み込みから個々のサーバー接続管理、エージェントへのインターフェース提供までを整理できると考えられます。
