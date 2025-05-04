@@ -6,15 +6,15 @@
 
 **最近のアクティビティ:**
 
-- 初期の MCP クライアント統合設計書 (`docs/mcp_client_integration_design.md`) を作成し、「目的」「サーバー設定方法」「クライアント実装詳細（クラス構造、AgentLoop連携）」セクションを日本語で記述した。
-- `AgentLoop` 内で `McpClientManager` を呼び出す具体的な箇所（コンストラクタ、run、handleFunctionCall、terminate/cancel）を特定した。
+- MCP クライアント統合設計書 (`docs/mcp_client_integration_design.md`) を作成・更新した。
+- `McpConfigLoader` クラス (`codex-cli/src/mcp/config.ts`) を実装し、設定ファイルの読み込み、バリデーション、マージ機能を追加した。
+- `McpConfigLoader` の単体テスト (`codex-cli/tests/mcp/config.test.ts`) を作成し、パスすることを確認した。
 
 **次のステップ:**
 
-1.  **設計フェーズ:** 設計書 (`docs/mcp_client_integration_design.md`) に、エラーハンドリング、セキュリティ、テスト計画などの残りの項目を記述し続ける。
-2.  **実装フェーズ:** 設計に基づき:
-    - `codex-cli` (TypeScript) コードベース内の適切なモジュール/ファイルを特定する。
-    - TypeScript で主要な MCP クライアント機能を実装する (`@modelcontextprotocol/ts-client` を使用)。
-    - MCP ツール呼び出しをエージェントの推論および実行ループに統合する。
-    - 新機能のテストを追加する。
-3.  (任意) 既存の `mcp-server` Rust クレートをクライアント開発中のローカルテストハーネスとして使用することを検討する。
+1.  **実装フェーズ:**
+    - `McpClientInstance` クラス (`codex-cli/src/mcp/instance.ts`) を実装する。これにはサーバープロセス起動、`@modelcontextprotocol/ts-client` SDK の利用、接続管理などが含まれる。
+    - または、`McpClientManager` クラス (`codex-cli/src/mcp/manager.ts`) を実装し、`McpConfigLoader` を利用して複数の `McpClientInstance` を管理する。
+    - `AgentLoop` との連携部分を実装する。
+    - 必要なテストを追加する。
+2.  **設計の継続:** 実装を進めながら、必要に応じて設計書を更新する。
