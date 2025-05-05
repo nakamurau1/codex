@@ -19,8 +19,10 @@
 
 - **Model Context Protocol (MCP) クライアント統合 (TypeScript):**
   - **完了:** 設計書 (`docs/mcp_client_integration_design.md`) の主要部分作成、`McpConfigLoader` の実装とテスト。
-  - **現在のフェーズ:** 実装 (`McpClientInstance` または `McpClientManager` から開始)。
-  - **残タスク:** `McpClientInstance`, `McpClientManager` の実装、`AgentLoop` との連携、関連テスト、エラーハンドリング/セキュリティの詳細実装。
+  - **現在のフェーズ:** `McpClientInstance` の実装に着手。
+    - `@modelcontextprotocol/sdk` パッケージをインストール済み。
+    - `McpClientInstance` の基本的なクラス構造を `codex-cli/src/mcp/instance.ts` に実装済み。
+  - **残タスク:** `McpClientInstance` の `startServerProcess`, 接続/切断ロジック、対話メソッド、エラーハンドリングの実装。`McpClientManager` の実装、`AgentLoop` との連携、関連テスト、エラーハンドリング/セキュリティの詳細実装。
 - **マルチモーダル入力処理:** README でサポートが言及されているが、設計/実装は未着手。
 - **機能改善/バグ修正:** README の TODO や Issue Tracker に記載されている可能性のある項目。
 - **ドキュメント:** MCP 機能に関するユーザー向けドキュメントの作成。
