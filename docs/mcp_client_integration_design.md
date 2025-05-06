@@ -60,7 +60,9 @@ Codex CLI が接続する MCP サーバーは、設定ファイルによって�
         "sampling": false,
         "logging": false
         // 他のCapabilityも将来的に追加可能
-      }
+      },
+      // NEW: タイムアウト設定 (秒単位、オプション)
+      "timeoutSeconds": 30 // 任意: このサーバーへのリクエストのデフォルトタイムアウト (デフォルト: 30秒)
       // 将来的な拡張: transport (stdio/sse), url (sse用) など
     },
     "<サーバー名2>": {
@@ -94,6 +96,10 @@ Codex CLI が接続する MCP サーバーは、設定ファイルによって�
   - `sampling`: サーバーから LLM への推論リクエスト機能。
   - `logging`: サーバーからのログメッセージ受信機能。
   - デフォルトではすべて `false` とし、必要な機能のみ明示的に有効化することを推奨します。クライアント実装側は、ここで `true` に設定された Capability のみをサーバーとのネゴシエーションで要求します。
+- **`timeoutSeconds` (任意):**
+  - このサーバーへのリクエスト（ツール呼び出しなど）に対するデフォルトのタイムアウト時間を秒単位で指定します。
+  - 指定しない場合、または不正な値の場合は、システム共通のデフォルト値（例: 30秒）が適用されます。
+  - 応答のないサーバーによってエージェント全体が長時間ブロックされるのを防ぎます。
 
 ### 2.3. CLI 引数
 
@@ -201,7 +207,8 @@ MCP クライアント機能は `codex-cli` パッケージ内の TypeScript で
     - サーバープロセスの標準入出力と `StdioClientTransport` を接続する。
     - サーバーからのイベント (エラー、クローズ、ログなど) をハンドルする。
     - `McpClientManager` からの要求に応じて、ツールリスト (`listTools`)、リソースリスト (`listResources`)、リソーステンプレートリスト (`listResourceTemplates`) をサーバーから取得する。
-    - ツール呼び出し (`callTool`) やリソース読み取り (`readResource`) を実行し、結果を返す。
+    - ツール呼び出し (`callTool`) やリソース読み取り (`readResource`) を実行し、結果を返す。この際、設定ファイルで指定された `timeoutSeconds` を考慮する。
+    - (STDIO トランスポートの場合) サーバープロセスの主要な実行ファイル（設定の `command` から推測可能な範囲で）の変更を監視し、変更が検知された場合はサーバープロセスを自動的に再起動・再接続する。chokidarのようなライブラリの使用を検討する。
   - **配置:** `codex-cli/src/mcp/instance.ts`
 
 **クラス間の関係:**
@@ -234,10 +241,10 @@ graph LR
 3.  **ツール呼び出しの処理:** `AgentLoop` 内の `handleFunctionCall` メソッドは、LLM からのツール呼び出しを処理します。
     - 受け取った `ResponseFunctionToolCall` の `name` を確認します。
     - 名前が `shell` であれば、既存の `handleExecCommand` を呼び出します。
-    - 名前が MCP ツール（例: `github:get_issue`, `web_search:search` など、サーバー名とツール名を組み合わせた形式が考えられる）であれば、`McpClientManager` の `callTool(serverName, toolName, args)` のようなメソッドを呼び出して実行を委譲します。引数 (`args`) は `parseToolCallArguments` を利用してパースします。
+    - 名前が MCP ツール（例: `github:get_issue`, `web_search:search` など、サーバー名とツール名を組み合わせた形式が考えられる）であれば、`McpClientManager` の `callTool(serverName, toolName, args)` のようなメソッドを呼び出して実行を委譲します。この際、設定されたタイムアウト値が `McpClientInstance` レベルで適用されます。引数 (`args`) は `parseToolCallArguments` を利用してパースします。
 4.  **結果の返却:** `McpClientManager` から返されたツールの実行結果（成功時の出力またはエラー情報）を、`AgentLoop` は `function_call_output` 形式の `ResponseInputItem` に整形し、次の LLM へのリクエストに含めます。
-5.  **エラーハンドリング:** `McpClientManager` や `McpClientInstance` で発生したエラー（サーバー接続失敗、ツール実行タイムアウト、プロトコルエラーなど）は `AgentLoop` に適切に伝播され、必要に応じてユーザーに通知されたり、LLM へのエラーメッセージとして返されたりする必要があります。
-6.  **クリーンアップ:** `AgentLoop` が終了する際 (`terminate` メソッドなど) に、`McpClientManager` のクリーンアップメソッドを呼び出し、すべての MCP サーバープロセスを確実に終了させ、接続を閉じます。
+5.  **エラーハンドリング:** `McpClientManager` や `McpClientInstance` で発生したエラー（サーバー接続失敗、ツール実行タイムアウト、プロトコルエラーなど）は `AgentLoop` に適切に伝播され、必要に応じてユーザーに通知されたり、LLM へのエラーメッセージとして返されたりする必要があります。タイムアウトエラーもここで処理されます。
+6.  **クリーンアップ:** `AgentLoop` が終了する際 (`terminate` メソッドなど) に、`McpClientManager` のクリーンアップメソッドを呼び出し、すべての MCP サーバープロセスを確実に終了させ、接続を閉じます。ファイルウォッチャーもここで破棄します。
 
 **ツール呼び出し時のシーケンス図:**
 
