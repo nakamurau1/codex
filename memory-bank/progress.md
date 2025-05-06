@@ -14,15 +14,26 @@
 - 非対話モード (`--quiet`)。
 - 内部 MCP インフラストラクチャ (Rust): プロトコル型のための `mcp-types` クレートと基本的なテストサーバーのための `mcp-server` が存在する。
 - Codex は自身の開発に貢献するために成功裏に使用されている（例: `mcp-types` の生成）。
+- MCPクライアント設定ローダー (`McpConfigLoader`) の実装とテスト。`timeoutSeconds` 設定も含む。
 
 **構築が必要なもの / 次のステップ:**
 
 - **Model Context Protocol (MCP) クライアント統合 (TypeScript):**
-  - **完了:** 設計書 (`docs/mcp_client_integration_design.md`) の主要部分作成、`McpConfigLoader` の実装とテスト。
-  - **現在のフェーズ:** `McpClientInstance` の実装に着手。
-    - `@modelcontextprotocol/sdk` パッケージをインストール済み。
-    - `McpClientInstance` の基本的なクラス構造を `codex-cli/src/mcp/instance.ts` に実装済み。
-  - **残タスク:** `McpClientInstance` の `startServerProcess`, 接続/切断ロジック、対話メソッド、エラーハンドリングの実装。`McpClientManager` の実装、`AgentLoop` との連携、関連テスト、エラーハンドリング/セキュリティの詳細実装。
+  - **完了:** 設計書 (`docs/mcp_client_integration_design.md`) の主要部分作成と更新 (`timeoutSeconds`、ファイル監視の設計追加)、`McpConfigLoader` の実装とテスト (`timeoutSeconds` 対応済み)。`@modelcontextprotocol/sdk` インストール済み。
+  - **現在のフェーズ:** `McpClientInstance` の実装中。
+    - `startServerProcess` メソッドの堅牢化（エラーハンドリング、状態遷移改善、エラー/STDERR記録）。
+    - `chokidar` を利用したファイル監視機能の基本的な仕組みと、ファイル変更検知時の自動再起動ロジック（デバウンス処理含む `_handleRestart` メソッド）を実装。
+    - 自動再起動に必要な `connect()` および `disconnect()` メソッドのプレースホルダー（ログ出力と状態遷移のみ）を実装。
+    - インスタンス破棄のための `dispose()` メソッドを追加（ファイルウォッチャーとプロセスのクリーンアップ）。
+  - **残タスク:**
+    - `McpClientInstance`:
+      - `connect()` メソッドの本格実装: `@modelcontextprotocol/sdk` の `Client` と `StdioClientTransport` を使用し、サーバープロセスとのMCP接続確立、ハンドシェイク処理（capabilityネゴシエーション含む）、設定された `timeoutSeconds` を考慮したタイムアウト処理を実装する。
+      - `disconnect()` メソッドの本格実装: MCP接続の切断、トランスポートのクローズ、関連リソース（クライアント、トランスポート、サーバープロセス、ファイルウォッチャー）の完全なクリーンアップを実装する。
+      - ツール/リソース対話メソッド (`listTools`, `callTool` など) を実装する。ここでも `timeoutSeconds` を考慮する。
+    - `McpClientManager` の実装。
+    - `AgentLoop` との連携。
+    - 関連テスト（特に `McpClientInstance` の接続・切断・再起動フロー）。
+    - エラーハンドリング/セキュリティの詳細実装。
 - **マルチモーダル入力処理:** README でサポートが言及されているが、設計/実装は未着手。
 - **機能改善/バグ修正:** README の TODO や Issue Tracker に記載されている可能性のある項目。
 - **ドキュメント:** MCP 機能に関するユーザー向けドキュメントの作成。
