@@ -26,6 +26,7 @@ const mcpServerConfigSchema = z.object({
   env: z.record(z.string()).optional(),
   enabled: z.boolean().optional().default(true),
   capabilities: mcpServerCapabilitiesSchema,
+  timeoutSeconds: z.number().int().positive().optional().default(30),
 });
 
 export type McpServerConfig = z.infer<typeof mcpServerConfigSchema>;

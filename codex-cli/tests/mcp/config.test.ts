@@ -131,7 +131,10 @@ describe("McpConfigLoader", () => {
 
   it("should handle schema validation errors gracefully", async () => {
     const invalidSchemaContent = createMockConfig({
-      badSchema: { command: "not-an-array" },
+      badSchema: {
+        command: ["some-cmd"],
+        timeoutSeconds: "not-a-number" as any,
+      },
     });
     vi.spyOn(fs, "readFile")
       .mockResolvedValueOnce(invalidSchemaContent as any)
@@ -176,5 +179,93 @@ describe("McpConfigLoader", () => {
     const loader = new McpConfigLoader();
     const config = await loader.loadConfig();
     expect(config).toEqual({ mcpServers: {} });
+  });
+
+  it("should correctly load timeoutSeconds when specified", async () => {
+    const mockGlobalContent = createMockConfig({
+      serverWithTimeout: { command: ["global-cmd"], timeoutSeconds: 60 },
+    });
+    vi.spyOn(fs, "readFile")
+      .mockResolvedValueOnce(mockGlobalContent as any)
+      .mockRejectedValue({ code: "ENOENT" }); // No project config
+
+    const loader = new McpConfigLoader();
+    const config = await loader.loadConfig();
+
+    expect(config.mcpServers?.["serverWithTimeout"]?.timeoutSeconds).toBe(60);
+  });
+
+  it("should override global timeoutSeconds with project timeoutSeconds", async () => {
+    const mockGlobalContent = createMockConfig({
+      serverToOverride: {
+        command: ["global-cmd"],
+        timeoutSeconds: 60,
+        env: { GLOBAL_VAR: "global" },
+      },
+    });
+    const mockProjectContent = createMockConfig({
+      serverToOverride: {
+        command: ["project-cmd"], // Also test other fields are merged/overridden
+        timeoutSeconds: 15, // Project specific timeout
+        env: { PROJECT_VAR: "project" },
+      },
+    });
+
+    vi.spyOn(fs, "readFile")
+      .mockResolvedValueOnce(mockGlobalContent as any)
+      .mockResolvedValueOnce(mockProjectContent as any);
+
+    const loader = new McpConfigLoader();
+    const config = await loader.loadConfig();
+
+    const server = config.mcpServers?.["serverToOverride"];
+    expect(server).toBeDefined();
+    expect(server?.timeoutSeconds).toBe(15);
+    expect(server?.command).toEqual(["project-cmd"]);
+    expect(server?.env).toEqual({
+      GLOBAL_VAR: "global",
+      PROJECT_VAR: "project",
+    });
+  });
+
+  describe("timeoutSeconds validation", () => {
+    const testCases = [
+      { name: "zero", value: 0, valid: false },
+      { name: "negative", value: -10, valid: false },
+      { name: "float", value: 15.5, valid: false },
+      { name: "non-number string", value: "not-a-number", valid: false },
+      { name: "valid positive integer", value: 45, valid: true },
+    ];
+
+    for (const tc of testCases) {
+      it(`should handle timeoutSeconds: ${tc.name} (${tc.value}) correctly (valid: ${tc.valid})`, async () => {
+        const mockContent = createMockConfig({
+          testServer: { command: ["cmd"], timeoutSeconds: tc.value as any },
+        });
+
+        vi.spyOn(fs, "readFile")
+          .mockResolvedValueOnce(mockContent as any)
+          .mockRejectedValue({ code: "ENOENT" }); // No project config, only testing global
+
+        const loader = new McpConfigLoader();
+        const config = await loader.loadConfig();
+
+        if (tc.valid) {
+          expect(config.mcpServers?.["testServer"]?.timeoutSeconds).toBe(
+            tc.value,
+          );
+        } else {
+          // If validation fails for a server's property, the Zod schema for mcpServers (record)
+          // might still parse successfully if mcpServers itself is optional and defaults to {}.
+          // However, the specific server entry 'testServer' with invalid timeoutSeconds should not be present
+          // if the McpServerConfig schema fails for it.
+          // The current behavior is that if any part of the JSON is invalid against the schema,
+          // _loadAndValidateConfigFile returns null for that file.
+          expect(config.mcpServers?.["testServer"]).toBeUndefined();
+          // More precisely, if the global file fails validation, mcpServers should be empty (assuming no project file or it also fails)
+          expect(config.mcpServers).toEqual({});
+        }
+      });
+    }
   });
 });
