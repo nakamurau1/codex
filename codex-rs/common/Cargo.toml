@@ -1,3 +1,5 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "codex-common"
 version = { workspace = true }
@@ -10,5 +12,5 @@ codex-core = { path = "../core" }
 
 [features]
 # Separate feature so that `clap` is not a mandatory dependency.
-cli = ["clap"]
-elapsed = ["chrono"]
+cli = ["dep:clap"]
+elapsed = ["dep:chrono"]
