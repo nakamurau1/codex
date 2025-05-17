@@ -1,3 +1,5 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "codex-mcp-client"
 version = { workspace = true }
